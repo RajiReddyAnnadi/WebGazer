@@ -1,0 +1,261 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Human Gaze Behavior During Visual Crowd Counting</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+                body {
+            font: 14px "Open Sans", "Arial", sans-serif;
+        }
+        
+        video {
+            margin-top: 2px;
+            border: 1px solid black;
+        }
+        
+        .button {
+            cursor: pointer;
+            display: block;
+            width: 160px;
+            border: 1px solid black;
+            font-size: 16px;
+            text-align: center;
+            padding-top: 2px;
+            padding-bottom: 4px;
+            color: white;
+            background-color: darkgreen;
+            text-decoration: none;
+        }
+  
+    </style>
+    <!-- <script src="./node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./node_modules/sweetalert/dist/sweetalert.min.js"></script> -->
+
+    <!-- These three scripts needed for calibration -->
+
+    <script src="./webgazer.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/calibration.js"></script>
+
+    <!-- <script src="./js/precision_calculation.js"></script> -->
+    <!-- <script src="./js/precision_store_points.js"></script> -->
+    <script>
+        // webgazer.setGazeListener(function(data, elapsedTime) {
+        //     if (data == null) {
+        //         return; 
+        //     }
+        //     var xprediction = data.x; //these x coordinates are relative to the viewport
+        //     var yprediction = data.y; //these y coordinates are relative to the viewport
+        //     console.log(elapsedTime); //elapsed time is based on time since begin was called
+        // }).begin();
+    </script>
+    
+    <script>
+        navigator.getUserMedia({ audio: false, video: { width: 1280, height: 720 } },
+      function(stream) {
+         var video = document.querySelector('video');
+         console.log(video);video.srcObject = stream;
+         video.onloadedmetadata = function(e) {
+           video.play();
+         };
+      },
+      function(err) {
+         console.log("The following error occurred: " + err.name);
+      }
+   );
+    </script>
+
+    <script>
+        function script(){
+        //     webgazer.setGazeListener(function(data, elapsedTime) {
+        //     if (data == null) {
+        //         return; 
+        //     }
+        //     var xprediction = data.x; //these x coordinates are relative to the viewport
+        //     var yprediction = data.y; //these y coordinates are relative to the viewport
+        //     console.log(elapsedTime); //elapsed time is based on time since begin was called
+        // }).begin();
+        console.log(document);
+        let preview = document.getElementById("preview");
+        let recording = document.getElementById("recording");
+        let startButton = document.getElementById("startButton");
+        let stopButton = document.getElementById("stopButton");
+        let downloadButton = document.getElementById("downloadButton");
+        let logElement = document.getElementById("log");
+
+        let recordingTimeMS =  1 * 1 * 5 * 1000;
+        function log(msg) {
+        logElement.innerHTML += msg + "\n";
+        }
+        function wait(delayInMS) {
+        return new Promise(resolve => setTimeout(resolve, delayInMS));
+        }
+        function startRecording(stream, lengthInMS) {
+        let recorder = new MediaRecorder(stream);
+        let data = [];
+        
+        recorder.ondataavailable = event => data.push(event.data);
+        recorder.start();
+        log(recorder.state + " for " + (lengthInMS/1000) + " seconds...");
+        
+        let stopped = new Promise((resolve, reject) => {
+            recorder.onstop = resolve;
+            recorder.onerror = event => reject(event.name);
+        });
+
+          let recorded = wait(lengthInMS).then(
+            () => recorder.state == "recording" && recorder.stop()
+          );
+        
+        return Promise.all([
+            stopped,
+            recorded
+        ])
+        .then(() => data);
+        }
+        function stop(stream) {
+        stream.getTracks().forEach(track => track.stop());
+        }
+        startButton.addEventListener("click", function() {
+            navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            }).then(stream => {
+                preview.srcObject = stream;
+                downloadButton.href = stream;
+                preview.captureStream = preview.captureStream || preview.mozCaptureStream;
+                return new Promise(resolve => preview.onplaying = resolve);
+            }).then(() => startRecording(preview.captureStream(), recordingTimeMS))
+            .then (recordedChunks => {
+                let recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
+                recording.src = URL.createObjectURL(recordedBlob);
+                downloadButton.href = recording.src;
+                downloadButton.download = "RecordedVideo.webm";
+                
+                log("Successfully recorded " + recordedBlob.size + " bytes of " +
+                    recordedBlob.type + " media.");
+            })
+            .catch(log);
+            }, false);
+            stopButton.addEventListener("click", function() {
+                stop(preview.srcObject);
+            }, false);
+        }
+    </script>
+</head>
+<body data-gr-c-s-loaded="true" cz-shortcut-listen="true" >
+    <video style="float: right;" height="400" width="400"></video>
+
+      <!-- <div class="left" style="float: right;">
+        <div id="startButton" class="button">
+          Start
+        </div>
+        <h2>Preview</h2>
+        <video id="preview" width="160" height="120" autoplay muted></video>
+      </div>
+      <div class="right" style="float: right;">
+        <div id="stopButton" class="button">
+          Stop
+        </div>
+        <h2>Recording</h2>
+        <video id="recording" width="160" height="120" controls></video>
+        <a id="downloadButton" class="button">
+          Download
+        </a>
+      </div>
+      <div class="bottom" style="float: right;">
+        <pre id="log"></pre>
+      </div> -->
+<table width="1000" align="center">
+    
+    <tbody>
+    <tr>
+        <td width="908">
+            <p align="center"><img src="./images/im11.jpeg" alt="" width="1000" height="200"> 
+            </p>
+
+            <h1 align="center"><font size="6.5" ,="" font="font" face="Arial"><strong> A Study of Human Gaze Behavior During Visual Crowd Counting </strong></font></h1>
+            <p align="center"> <font size="4" ,="" font="font" face="Arial">
+                Raji Annadi<sup>1</sup>, Yupei Chen<sup>2</sup>, Viresh Ranjan<sup>1</sup>, Dimitris Samaras<sup>1</sup>,  Gregory Zelinsky<sup>2</sup>, <a href="https://www3.cs.stonybrook.edu/~minhhoai/index.html" target="_blank">Minh Hoai</a><sup>1</sup>
+        </font> </p>
+        <p align="center">
+        <font size="4" ,="" font="font" face="Arial"> <sup>1</sup>Department of Computer Science, <sup> 2</sup>Department of Psychology </font> 
+        </p>
+        <p align="center">
+        <font size="4" ,="" font="font" face="Arial"> Stony Brook University, Stony Brook, NY 11790 </font> 
+        </p>
+<!--        <p align="center"> <img src="./hand_results/result_1.jpg" alt="" width="500"></p>
+        <p align="center">
+        <font size="3" ,="" font="font" face="Arial">Figure 1: We propose Hand-CNN, a novel network for detecting hand masks and estimating hand orientations in unconstrained conditions. </font></p> -->
+        <br>
+        <br>
+        <p align="center">
+        <font size="5" ,="" font="font" face="Arial"><b>Abstract </b></font></p>
+        <p align="justify">
+        <font size="4" ,="" font="font" face="Arial">In this paper, we describe our study on how humans allocate their attention during visual crowdcounting. Using an eye tracker, we collect gaze behavior of human participants who are tasked withcounting the number of people in crowd images. Analyzing the collected gaze behavior of ten humanparticipants on thirty crowd images, we observe some common approaches for visual counting. Foran image of a small crowd, the approach is to enumerate over all people or groups of people in thecrowd, and this explains the high level of similarity between the fixation density maps of different humanparticipants. For an image of a large crowd, our participants tend to focus on one section of the image,count the number of people in that section, and then extrapolate to the other sections. In terms of countaccuracy, our human participants are not as good at the counting task, compared to the performanceof the current state-of-the-art computer algorithms. Interestingly, there is a tendency to under countthe number of people in all crowd images. </font>
+        
+        </p>
+        <p align="center">
+            <font size="5" ,="" font="font" face="Arial"><b>Datasets </b></font></p> 
+            
+            <p align="justify">
+            <font size="4" ,="" font="font" face="Arial"> This dataset contains human gaze data of 10 subjects performing visual crowd counting tasks on 30 images. All the data and code can be download from  <a href="" target="_blank" download="">here</a>. Please refer to the Readme file for the data structure.</font> </p>
+            <br>
+    
+            <p align="center"><font size="4" ,="" font="font" face="Arial">
+        <font size="5" ,="" font="font" face="Arial"><b>Paper </b></font></font></p><font size="4" ,="" font="font" face="Arial"> 
+            <p align="justify">
+            <font size="4" ,="" font="font" face="Arial"> <a href="https://arxiv.org/pdf/2009.06502.pdf" target="_blank">A Study of Human Gaze Behavior During Visual Crowd Counting</a>. Raji Annadi, Yupei Chen, Viresh Ranjan, Dimitris Samaras, Gregory Zelinsky, Minh Hoai.
+                <br>
+                <br>
+                If you find this work useful in your research please cite our work using this <a href="./HumanGazeBehaviour_bibtext.bib" target="_blank" download="">BibTeX</a>. </font>
+            <br>
+        <p align="center">
+        <font size="5" ,="" font="font" face="Arial"><b>Examples </b></font> 
+        </p>
+        <p align="center">
+            <img src="./images/img_0189.png" alt="" width="400" height="300"/>
+            <img src="./images/fix_map.jpg" alt="" width="400" height="300"/> 
+        
+            
+            <img src="./images/im07.jpg" alt="" width="400" height="300"/>
+            <img src="./images/fix_sp2.jpg"  width="400" height="300"/> 
+        </p>
+        <p align="center">
+        <font size="3" ,="" font="font" face="Arial">Figure 1: Some sparse crowd images and their fixation density maps. </font></p> 
+
+
+        <p align="center">
+            <img src="./images/img_0166.png" alt="" width="400" height="300"/>
+            <img src="./images/fix_map_dense.jpg" alt="" width="400" height="300"/> 
+        
+            
+            <img src="./images/im04.jpg" alt="" width="400" height="300"/>
+            <img src="./images/Fixmap_s02_ Trial_ 24.png"  width="400" height="300"/> 
+        </p>
+        <p align="center">
+        <font size="3" ,="" font="font" face="Arial">Figure 2: Some dense crowd images and their fixation density maps. </font></p> 
+        
+       
+         <br>
+
+        </font></p>
+
+        <p align="center">
+            <font size="5" ,="" font="font" face="Arial"><b>Copyright notice </b></font> 
+            <p align="justify">
+                <font size="4" ,="" font="font" face="Arial"> The documents contained in these directories are included by the contributing authors as a means to ensure timely dissemination of scholarly and technical work on a non-commercial basis. Copyright and all rights therein are maintained by the authors or by other copyright holders, notwithstanding that they have offered their works here electronically. It is understood that all persons copying this information will adhere to the terms and constraints invoked by each author's copyright. These works may not be reposted without the explicit permission of the copyright holder.</p>
+                <br>
+            </p>
+        </p>
+       
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+    </p></font></td></tr>
+    </tbody>
+</table>
+
+<span class="gr__tooltip"><span class="gr__tooltip-content"></span><i class="gr__tooltip-logo"></i><span class="gr__triangle"></span></span>
+</body>
