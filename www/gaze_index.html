@@ -38,136 +38,117 @@
 
     <!-- <script src="./js/precision_calculation.js"></script> -->
     <!-- <script src="./js/precision_store_points.js"></script> -->
-    <script>
-        // webgazer.setGazeListener(function(data, elapsedTime) {
-        //     if (data == null) {
-        //         return; 
-        //     }
-        //     var xprediction = data.x; //these x coordinates are relative to the viewport
-        //     var yprediction = data.y; //these y coordinates are relative to the viewport
-        //     console.log(elapsedTime); //elapsed time is based on time since begin was called
-        // }).begin();
-    </script>
+    
+    <!-- Record RTC Libraries -->
+    <script src="RecordRTC.js"></script>
+    <script src="https://www.webrtc-experiment.com/common.js"></script>
+     <!-- web streams API polyfill to support Firefox -->
+     <script src="https://unpkg.com/@mattiasbuelens/web-streams-polyfill/dist/polyfill.min.js"></script>
+
+     <!-- ../libs/DBML.js to fix video seeking issues -->
+     <script src="https://www.webrtc-experiment.com/EBML.js"></script>
+ 
+     <!-- for Edge/FF/Chrome/Opera/etc. getUserMedia support -->
+     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+     <script src="https://www.webrtc-experiment.com/DetectRTC.js"> </script>
+ 
+     <!-- video element -->
+     <link href="https://www.webrtc-experiment.com/getHTMLMediaElement.css" rel="stylesheet">
+     <script src="https://www.webrtc-experiment.com/getHTMLMediaElement.js"></script>
     
     <script>
-        navigator.getUserMedia({ audio: false, video: { width: 1280, height: 720 } },
-      function(stream) {
-         var video = document.querySelector('video');
-         console.log(video);video.srcObject = stream;
-         video.onloadedmetadata = function(e) {
-           video.play();
-         };
-      },
-      function(err) {
-         console.log("The following error occurred: " + err.name);
-      }
-   );
-    </script>
 
-    <script>
-        function script(){
-        //     webgazer.setGazeListener(function(data, elapsedTime) {
-        //     if (data == null) {
-        //         return; 
-        //     }
-        //     var xprediction = data.x; //these x coordinates are relative to the viewport
-        //     var yprediction = data.y; //these y coordinates are relative to the viewport
-        //     console.log(elapsedTime); //elapsed time is based on time since begin was called
-        // }).begin();
-        console.log(document);
-        let preview = document.getElementById("preview");
-        let recording = document.getElementById("recording");
-        let startButton = document.getElementById("startButton");
-        let stopButton = document.getElementById("stopButton");
-        let downloadButton = document.getElementById("downloadButton");
-        let logElement = document.getElementById("log");
-
-        let recordingTimeMS =  1 * 1 * 5 * 1000;
-        function log(msg) {
-        logElement.innerHTML += msg + "\n";
-        }
-        function wait(delayInMS) {
-        return new Promise(resolve => setTimeout(resolve, delayInMS));
-        }
-        function startRecording(stream, lengthInMS) {
-        let recorder = new MediaRecorder(stream);
-        let data = [];
-        
-        recorder.ondataavailable = event => data.push(event.data);
-        recorder.start();
-        log(recorder.state + " for " + (lengthInMS/1000) + " seconds...");
-        
-        let stopped = new Promise((resolve, reject) => {
-            recorder.onstop = resolve;
-            recorder.onerror = event => reject(event.name);
+    var globalVariable = {};
+    navigator.mediaDevices.getUserMedia({
+        video: true
+    }).then(async function(stream) {
+        let recorder = RecordRTC(stream, {
+            type: 'video'
         });
+        recorder.startRecording();
+        recorder.camera = stream;
+        globalVariable.videoRecorder = recorder;
+    });
+    var chunks = [];
+    navigator.mediaDevices.getDisplayMedia({
+        video: {
+            mediaSource: 'screen',
+            // displaySurface: 'window', // monitor, window, application, browser
+            logicalSurface: true,
+            cursor: 'never' // never, always, motion
+        }
+    }).then(async function(stream) {
+        // let recorder = RecordRTC(stream, {
+        //     type: 'video'
+        // });
+        // recorder.startRecording();
+        // recorder.screen = stream;
+        // globalVariable.screenRecorder = recorder;
+        var options = {mimeType: 'video/webm; codecs=vp9'};
+        var mediaRecorder = new MediaRecorder(stream, options);
+        globalVariable.mediaRecorder = mediaRecorder;
+        globalVariable.screen = stream;
+        mediaRecorder.start();
+        mediaRecorder.ondataavailable = function(e) {
+            chunks.push(e.data);
+        }
+        mediaRecorder.onstop = function(e) {
+            var blob = new Blob(chunks, { 'type' : 'video/webm; codecs=vp9'});
+            // invokeSaveAsDialog(blob, "ScreenRecording"+Date.now()+".webm");
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style = 'display: none';
+            a.href = url;
+            a.download = "ScreenRecording"+Date.now()+".webm";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    });
+    
 
-          let recorded = wait(lengthInMS).then(
-            () => recorder.state == "recording" && recorder.stop()
-          );
+    function stopRecording(){
+        //stopping video recording
+        let videoRecorder =  globalVariable.videoRecorder;
+        videoRecorder.stopRecording(function() {
+            let blob = videoRecorder.getBlob();
+            invokeSaveAsDialog(blob, "VideoRecording"+Date.now()+".webm");
+        });
+        videoRecorder.camera.stop();
+        // videoRecorder.destroy();
+        // videoRecorder = null;
         
-        return Promise.all([
-            stopped,
-            recorded
-        ])
-        .then(() => data);
-        }
-        function stop(stream) {
-        stream.getTracks().forEach(track => track.stop());
-        }
-        startButton.addEventListener("click", function() {
-            navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            }).then(stream => {
-                preview.srcObject = stream;
-                downloadButton.href = stream;
-                preview.captureStream = preview.captureStream || preview.mozCaptureStream;
-                return new Promise(resolve => preview.onplaying = resolve);
-            }).then(() => startRecording(preview.captureStream(), recordingTimeMS))
-            .then (recordedChunks => {
-                let recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
-                recording.src = URL.createObjectURL(recordedBlob);
-                downloadButton.href = recording.src;
-                downloadButton.download = "RecordedVideo.webm";
-                
-                log("Successfully recorded " + recordedBlob.size + " bytes of " +
-                    recordedBlob.type + " media.");
-            })
-            .catch(log);
-            }, false);
-            stopButton.addEventListener("click", function() {
-                stop(preview.srcObject);
-            }, false);
-        }
+        //stopping screen recording
+        
+        // let screenRecorder =  globalVariable.screenRecorder;
+        // screenRecorder.screen.stop();
+        // screenRecorder.stopRecording(function() {
+        //     let blob = screenRecorder.getBlob();
+        //     invokeSaveAsDialog(blob, "ScreenRecording"+Date.now()+".webm");
+        // }).then(function(){
+        //     screenRecorder.destroy();
+        //     screenRecorder = null;
+        // });
+
+        let mediaRecorder =  globalVariable.mediaRecorder;
+        mediaRecorder.stop();
+        globalVariable.screen.stop();
+    }
+    //      console.log("The following error occurred: " + err.name);
+    //   }
+
+   
     </script>
+
 </head>
 <body data-gr-c-s-loaded="true" cz-shortcut-listen="true" >
-    <video style="float: right;" height="400" width="400"></video>
+    <!-- <video style="float: right;" height="400" width="400"></video> -->
 
-      <!-- <div class="left" style="float: right;">
-        <div id="startButton" class="button">
-          Start
-        </div>
-        <h2>Preview</h2>
-        <video id="preview" width="160" height="120" autoplay muted></video>
-      </div>
-      <div class="right" style="float: right;">
-        <div id="stopButton" class="button">
-          Stop
-        </div>
-        <h2>Recording</h2>
-        <video id="recording" width="160" height="120" controls></video>
-        <a id="downloadButton" class="button">
-          Download
-        </a>
-      </div>
-      <div class="bottom" style="float: right;">
-        <pre id="log"></pre>
-      </div> -->
+     
 <table width="1000" align="center">
     
     <tbody>
+    
     <tr>
         <td width="908">
             <p align="center"><img src="./images/im11.jpeg" alt="" width="1000" height="200"> 
@@ -253,7 +234,10 @@
         <br>
         <br>
         <br>
-    </p></font></td></tr>
+    </p></font>
+    <button id='stop' onclick="stopRecording()">stop</button>
+    </td></tr>
+    
     </tbody>
 </table>
 
