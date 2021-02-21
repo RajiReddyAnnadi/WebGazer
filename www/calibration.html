@@ -14,80 +14,155 @@ Instructions on use can be found in the README repository.
         <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
         <TITLE>WebGazer Demo</TITLE>
         <link rel="stylesheet" type="text/css" href="./css/style.css">
-        <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
-        <script src="./webgazer.js"></script>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
         <style>
           button {
             border-radius: 4px;
           }
+
+          /* Calibration button styling */
+          .Calibration{
+              width: 20px;
+              height: 20px;
+              -webkit-border-radius: 25px;
+              -moz-border-radius: 25px;
+              border-radius: 25px;
+              background-color: red;
+              opacity: 0.2;
+              border-color: black;
+              border-style: solid;
+              position:fixed;
+          }
+
+          /* Calibration point position */
+          #Pt1{
+              top: 70px;
+              left:340px;
+          }
+          #Pt2{
+              top: 70px;
+              left:50vw;
+              margin-left: 340;
+          }
+          #Pt3{
+              top: 70px;
+              right:2vw;
+          }
+          #Pt4{
+              top:50vh;
+              left:2vw;
+          }
+          #Pt5{
+              top: 50vh;
+              left: 50vw;
+          }
+          #Pt6{
+              top: 50vh;
+              right:2vw;
+          }
+          #Pt7{
+              bottom:2vw;
+              left: 2vw;
+          }
+          #Pt8{
+              bottom:2vw;
+              left:50vw;
+          }
+          #Pt9{
+              bottom:2vw;
+              right:2vw;
+          }
         </style>
+        <script>
+
+          function PlaySound(soundObj) {
+            console.log("playing sound")
+            // console.log(document.getElementById(soundObj))
+
+            var sound = document.getElementById(soundObj).play();
+            // sound.play();
+          }
+
+          function myscript(){
+            PlaySound("sound2");
+            var PointCalibrate = 0;
+            var CalibrationPoints={};
+            console.log("12345678")
+            console.log($(".Calibration"))
+            $(".Calibration").click(function(){ // click event on the calibration buttons
+              console.log("wefe")
+              
+              var id = $(this).attr('id');
+              if (!CalibrationPoints[id]){ // initialises if not done
+                CalibrationPoints[id]=0;
+              }
+              CalibrationPoints[id]++; // increments values
+              if (CalibrationPoints[id]==5){ //only turn to yellow after 5 clicks
+                $(this).css('background-color','yellow');
+                $(this).prop('disabled', true); //disables the button
+                PointCalibrate++;
+                console.log(id)
+                console.log(id.substring(2))
+                var msg = new SpeechSynthesisUtterance(id.substring(2) + " completed");
+window.speechSynthesis.speak(msg);
+              }else if (CalibrationPoints[id]<5){
+                //Gradually increase the opacity of calibration points when click to give some indication to user.
+                var opacity = 0.2*CalibrationPoints[id]+0.2;
+                $(this).css('opacity',opacity);
+              }
+              
+              //Show the middle calibration point after all other points have been clicked.
+              if (PointCalibrate == 8){
+                $("#Pt5").show();
+              }
+
+              if (PointCalibrate >= 9){ 
+                PlaySound("sound2");
+              }
+            })
+          }//myscripot closing brace
+        </script>
     </head>
-    <body LANG="en-US" LINK="#0000ff" DIR="LTR">
+    <body LANG="en-US" LINK="#0000ff" DIR="LTR" onload="myscript()">
       <canvas id="plotting_canvas" width="500" height="500" style="cursor:crosshair;"></canvas>
 
-        <script src="./node_modules/jquery/dist/jquery.min.js"></script>
-        <script src="./node_modules/sweetalert/dist/sweetalert.min.js"></script>
-        <script src="./webgazer.js"></script>
-        <script src="./js/main.js"></script>
-        <script src="./js/calibration.js"></script>
-        <script src="./js/precision_calculation.js"></script>
-        <script src="./js/precision_store_points.js"></script>
+        <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../node_modules/sweetalert/dist/sweetalert.min.js"></script>
+        <!-- uncomment below two lines for webgazer -->
+        <!-- <script src="./webgazer.js"></script>  -->
+        <!-- <script src="./js/main.js"></script>  -->
 
-        <nav id="webgazerNavbar" class="navbar navbar-default navbar-fixed-top">
-          <div class="container-fluid">
-            <div class="navbar-header">
-              <!-- The hamburger menu button -->
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-                <span class="icon-bar">Menu</span>
-              </button>
-            </div>
-            <div class="collapse navbar-collapse" id="myNavbar">
-              <ul class="nav navbar-nav">
-                <!-- Accuracy -->
-                <li id="Accuracy"><a>Not yet Calibrated</a></li>
-                <li><a onclick="Restart()" href="#">Recalibrate</a></li>
-                <li><a onclick="window.applyKalmanFilter = !window.applyKalmanFilter" href="#">Toggle Kalman Filter</a></li>
-              </ul>
-              <ul class="nav navbar-nav navbar-right">
-                <li><button class="helpBtn" data-toggle="modal" data-target="#helpModal"><a data-toggle="modal"><span class="glyphicon glyphicon-cog"></span> Help</a></li>
-              </ul>
-            </div>
-          </div>
-        </nav>
+        <!-- <script src="./js/calibration.js"></script> -->
+        <!-- <script src="./js/precision_calculation.js"></script> -->
+        <!-- <script src="./js/precision_store_points.js"></script> -->
+
+        <div style="float: right;padding-right: 189px;font-size: large;">
+          You must click on each point 5 times till it goes yellow. This will calibrate your eye movements.
+        </div>
         <!-- Calibration points -->
         <div class="calibrationDiv">
             <input type="button" class="Calibration" id="Pt1"></input>
             <input type="button" class="Calibration" id="Pt2"></input>
             <input type="button" class="Calibration" id="Pt3"></input>
             <input type="button" class="Calibration" id="Pt4"></input>
-            <input type="button" class="Calibration" id="Pt5"></input>
+            <input type="button" class="Calibration" id="Pt5" ></input>
             <input type="button" class="Calibration" id="Pt6"></input>
             <input type="button" class="Calibration" id="Pt7"></input>
             <input type="button" class="Calibration" id="Pt8"></input>
             <input type="button" class="Calibration" id="Pt9"></input>
         </div>
 
-        <!-- Modal -->
-        <div id="helpModal" class="modal fade" role="dialog">
-          <div class="modal-dialog">
+        <embed src="./beep.wav" autostart="true" width="0" height="0" id="sound1"
+enablejavascript="true">
 
-            <!-- Modal content-->
-            <div class="modal-content">
-              <div class="modal-body">
-                <img src="media/example/calibration.png" width="100%" height="100%" alt="webgazer demo instructions"></img>
-              </div>
-              <div class="modal-footer">
-                <button id="closeBtn" type="button" class="btn btn-default" data-dismiss="modal">Close & load saved model </button>
-                <button type="button" id='start_calibration' class="btn btn-primary" data-dismiss="modal" onclick="Restart()">Calibrate</button>
-              </div>
-            </div>
+<audio src="./beep.wav" id="sound2">
 
-          </div>
-        </div>
+</audio>
 
         <!-- Latest compiled JavaScript -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="./js/resize_canvas.js"></script>
-        <script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
     </body>
 </html>

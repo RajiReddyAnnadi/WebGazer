@@ -1,0 +1,182 @@
+/* for homepage */
+body {
+    font: 14px "Open Sans", "Arial", sans-serif;
+}
+
+video {
+    margin-top: 2px;
+    border: 1px solid black;
+}
+
+.button {
+    cursor: pointer;
+    display: block;
+    width: 160px;
+    border: 1px solid black;
+    font-size: 16px;
+    text-align: center;
+    padding-top: 2px;
+    padding-bottom: 4px;
+    color: white;
+    background-color: darkgreen;
+    text-decoration: none;
+}
+
+button {
+border-radius: 4px;
+}
+
+/* Calibration button styling */
+.Calibration{
+  width: 20px;
+  height: 20px;
+  -webkit-border-radius: 25px;
+  -moz-border-radius: 25px;
+  border-radius: 25px;
+  background-color: red;
+  opacity: 0.2;
+  border-color: black;
+  border-style: solid;
+  position:fixed;
+}
+
+/* Calibration point position */
+#Pt1{
+  top: 70px;
+  left:340px;
+}
+#Pt2{
+  top: 70px;
+  left:50vw;
+  margin-left: 340;
+}
+#Pt3{
+  top: 70px;
+  right:2vw;
+}
+#Pt4{
+  top:50vh;
+  left:2vw;
+}
+#Pt5{
+  top: 50vh;
+  left: 50vw;
+}
+#Pt6{
+  top: 50vh;
+  right:2vw;
+}
+#Pt7{
+  bottom:2vw;
+  left: 2vw;
+}
+#Pt8{
+  bottom:2vw;
+  left:50vw;
+}
+#Pt9{
+  bottom:2vw;
+  right:2vw;
+}
+
+/* for pre-test page */
+ul {list-style: none; display: inline-block; color: #e9ecef; padding: 0}
+li {list-style: none; display: inline-block; font-size:1.5rem; padding-right: 1.5rem; color: #e9ecef}
+tr {list-style: none;}
+th {list-style: none;}
+td {dlist-style: none;}
+
+.custbut{
+  font-size: 1rem;
+  background-color: #6c63ff;
+  width: 5vw;
+  height: 5vh;
+  text-align: center;
+  line-height: 0px;
+  border: none;
+  -moz-box-shadow: 0px 0px 10px #6c63ff;
+  -webkit-box-shadow: 0px 0px 10px #6c63ff;
+  box-shadow: 0px 0px 10px #6c63ff;
+}
+.custbut:hover{
+  background-color: #6359FB
+}
+.custbut:active{
+  transform: scale(0.9);
+  background-color: #6c63ff;
+}
+.custbut:focus{
+  background-color: #6c63ff;
+}
+
+.beacon{
+position: relative;
+top: -1px
+}
+.beacon:hover{
+  cursor: pointer;
+  document.getElementById("demo").innerHTML = "This is top bar keeps track of your progress in the module";
+}
+.item1 { grid-area: header; height: 10vh; width: 99%; display: block}
+.item2 { grid-area: left; width: 40vw; height: 70vh; display: block}
+.item3 { grid-area: right; width:60vw; height: 70vh; display: block}
+.item4 {grid-area: left; width: 40vw; height: 70vh; display: block }
+.item5 {grid-area: right; width: 60vw; height: 70vh}
+.item6 { grid-area: footer; width: 99%; display: block}
+
+.grid-container {
+  display: grid;
+  grid-template-areas:
+    'header header header header header header'
+    'left left left right right right'
+    'footer footer footer footer footer footer';
+  grid-gap: 0px;
+  padding: 0px;
+  height: 85vh;
+  width: 99%
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: center;
+}
+.vect-cont{
+    position: relative;
+    width: 550px;
+    height: 550px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: visible;
+}
+
+
+.grid-container > div {
+  background-color: none;
+  text-align: center;
+  padding: 10px;
+  justify-items: center;
+  position: relative;
+}
+
+.mytable{
+  position: absolute;
+  top: 10vh;
+  left: 8vw;
+  margin-left: auto;
+  margin-right: auto;
+  align-items: center
+}
+
+.trig-tab{
+ position: absolute;
+ grid-gap:25px;
+ text-align: center;
+ top: 25vh;
+ left: 18vw
+}
+
+
+#question{
+ top: -5vh;
+ -moz-box-shadow: 0px 0px 10px #343a40;
+ -webkit-box-shadow: 0px 0px 10px #343a40;
+ box-shadow: 0px 0px 10px #343a40;
+}
